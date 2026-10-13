@@ -1,7 +1,10 @@
 package com.juan.franchise.infrastructure.persistence;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -12,6 +15,7 @@ import com.juan.franchise.domain.model.Franchise;
 import com.juan.franchise.domain.model.Product;
 import com.juan.franchise.domain.port.FranchiseRepository;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -20,6 +24,8 @@ import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedExce
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
@@ -112,7 +118,49 @@ public class DynamoFranchiseRepository implements FranchiseRepository {
 
     @Override
     public Mono<Franchise> findFranchiseTree(String franchiseId) {
-        return Mono.error(new UnsupportedOperationException("Implemented in T6"));
+        QueryRequest request = QueryRequest.builder()
+                .tableName(table)
+                .keyConditionExpression("PK = :pk")
+                .expressionAttributeValues(Map.of(":pk", s(franchisePk(franchiseId))))
+                .build();
+        // The paginator follows LastEvaluatedKey, so we are safe past the 1 MB page limit.
+        return Flux.from(client.queryPaginator(request))
+                .flatMapIterable(QueryResponse::items)
+                .collectList()
+                .flatMap(items -> Mono.justOrEmpty(toFranchise(franchiseId, items)));
+    }
+
+    /** Rebuilds the franchise -> branches -> products tree from the items of a single partition. */
+    private static Optional<Franchise> toFranchise(String franchiseId, List<Map<String, AttributeValue>> items) {
+        Optional<String> franchiseName = items.stream()
+                .filter(i -> i.get("SK").s().equals("METADATA"))
+                .map(i -> i.get("name").s())
+                .findFirst();
+        if (franchiseName.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<String, List<Product>> productsByBranch = new HashMap<>();
+        for (Map<String, AttributeValue> item : items) {
+            String sk = item.get("SK").s();
+            int marker = sk.indexOf("#PRODUCT#");
+            if (sk.startsWith("BRANCH#") && marker > 0) {
+                String branchId = sk.substring("BRANCH#".length(), marker);
+                String productId = sk.substring(marker + "#PRODUCT#".length());
+                productsByBranch.computeIfAbsent(branchId, k -> new ArrayList<>()).add(new Product(
+                        productId, item.get("name").s(), Integer.parseInt(item.get("stock").n())));
+            }
+        }
+
+        List<Branch> branches = items.stream()
+                .filter(i -> i.get("SK").s().startsWith("BRANCH#") && !i.get("SK").s().contains("#PRODUCT#"))
+                .map(i -> {
+                    String branchId = i.get("SK").s().substring("BRANCH#".length());
+                    return new Branch(branchId, i.get("name").s(),
+                            productsByBranch.getOrDefault(branchId, List.of()));
+                })
+                .toList();
+        return Optional.of(new Franchise(franchiseId, franchiseName.get(), branches));
     }
 
     /**

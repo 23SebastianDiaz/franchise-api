@@ -2,6 +2,7 @@ package com.juan.franchise.infrastructure.entrypoint.rest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,14 +15,17 @@ import com.juan.franchise.application.usecase.CreateBranchUseCase;
 import com.juan.franchise.application.usecase.CreateFranchiseUseCase;
 import com.juan.franchise.application.usecase.CreateProductUseCase;
 import com.juan.franchise.application.usecase.DeleteProductUseCase;
+import com.juan.franchise.application.usecase.GetTopStockProductsUseCase;
 import com.juan.franchise.application.usecase.UpdateStockUseCase;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.CreateProductRequest;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.IdNameResponse;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.NameRequest;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.ProductResponse;
+import com.juan.franchise.infrastructure.entrypoint.rest.dto.TopStockProductResponse;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.UpdateStockRequest;
 
 import jakarta.validation.Valid;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -33,17 +37,20 @@ public class FranchiseController {
     private final CreateProductUseCase createProduct;
     private final DeleteProductUseCase deleteProduct;
     private final UpdateStockUseCase updateStock;
+    private final GetTopStockProductsUseCase getTopStockProducts;
 
     public FranchiseController(CreateFranchiseUseCase createFranchise,
                                CreateBranchUseCase createBranch,
                                CreateProductUseCase createProduct,
                                DeleteProductUseCase deleteProduct,
-                               UpdateStockUseCase updateStock) {
+                               UpdateStockUseCase updateStock,
+                               GetTopStockProductsUseCase getTopStockProducts) {
         this.createFranchise = createFranchise;
         this.createBranch = createBranch;
         this.createProduct = createProduct;
         this.deleteProduct = deleteProduct;
         this.updateStock = updateStock;
+        this.getTopStockProducts = getTopStockProducts;
     }
 
     @PostMapping
@@ -85,5 +92,12 @@ public class FranchiseController {
                                              @Valid @RequestBody UpdateStockRequest request) {
         return updateStock.execute(franchiseId, branchId, productId, request.stock())
                 .map(p -> new ProductResponse(p.id(), p.name(), p.stock()));
+    }
+
+    @GetMapping("/{franchiseId}/top-stock-products")
+    public Flux<TopStockProductResponse> topStockProducts(@PathVariable String franchiseId) {
+        return getTopStockProducts.execute(franchiseId)
+                .map(t -> new TopStockProductResponse(
+                        t.branchId(), t.branchName(), t.productId(), t.productName(), t.stock()));
     }
 }
