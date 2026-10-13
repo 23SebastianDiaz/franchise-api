@@ -24,10 +24,12 @@ import com.juan.franchise.infrastructure.entrypoint.rest.dto.ProductResponse;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.TopStockProductResponse;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.UpdateStockRequest;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Tag(name = "Franchises")
 @RestController
 @RequestMapping("/api/v1/franchises")
 public class FranchiseController {
