@@ -1,6 +1,8 @@
 package com.juan.franchise.infrastructure.entrypoint.rest;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,10 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.juan.franchise.application.usecase.CreateBranchUseCase;
 import com.juan.franchise.application.usecase.CreateFranchiseUseCase;
 import com.juan.franchise.application.usecase.CreateProductUseCase;
+import com.juan.franchise.application.usecase.DeleteProductUseCase;
+import com.juan.franchise.application.usecase.UpdateStockUseCase;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.CreateProductRequest;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.IdNameResponse;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.NameRequest;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.ProductResponse;
+import com.juan.franchise.infrastructure.entrypoint.rest.dto.UpdateStockRequest;
 
 import jakarta.validation.Valid;
 import reactor.core.publisher.Mono;
@@ -26,13 +31,19 @@ public class FranchiseController {
     private final CreateFranchiseUseCase createFranchise;
     private final CreateBranchUseCase createBranch;
     private final CreateProductUseCase createProduct;
+    private final DeleteProductUseCase deleteProduct;
+    private final UpdateStockUseCase updateStock;
 
     public FranchiseController(CreateFranchiseUseCase createFranchise,
                                CreateBranchUseCase createBranch,
-                               CreateProductUseCase createProduct) {
+                               CreateProductUseCase createProduct,
+                               DeleteProductUseCase deleteProduct,
+                               UpdateStockUseCase updateStock) {
         this.createFranchise = createFranchise;
         this.createBranch = createBranch;
         this.createProduct = createProduct;
+        this.deleteProduct = deleteProduct;
+        this.updateStock = updateStock;
     }
 
     @PostMapping
@@ -56,6 +67,23 @@ public class FranchiseController {
                                                @PathVariable String branchId,
                                                @Valid @RequestBody CreateProductRequest request) {
         return createProduct.execute(franchiseId, branchId, request.name(), request.stock())
+                .map(p -> new ProductResponse(p.id(), p.name(), p.stock()));
+    }
+
+    @DeleteMapping("/{franchiseId}/branches/{branchId}/products/{productId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteProduct(@PathVariable String franchiseId,
+                                    @PathVariable String branchId,
+                                    @PathVariable String productId) {
+        return deleteProduct.execute(franchiseId, branchId, productId);
+    }
+
+    @PatchMapping("/{franchiseId}/branches/{branchId}/products/{productId}/stock")
+    public Mono<ProductResponse> updateStock(@PathVariable String franchiseId,
+                                             @PathVariable String branchId,
+                                             @PathVariable String productId,
+                                             @Valid @RequestBody UpdateStockRequest request) {
+        return updateStock.execute(franchiseId, branchId, productId, request.stock())
                 .map(p -> new ProductResponse(p.id(), p.name(), p.stock()));
     }
 }

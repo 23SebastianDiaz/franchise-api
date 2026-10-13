@@ -16,11 +16,15 @@ import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionCheck;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 /**
  * DynamoDB adapter (single-table design). Key layout:
@@ -76,12 +80,34 @@ public class DynamoFranchiseRepository implements FranchiseRepository {
 
     @Override
     public Mono<Void> deleteProduct(String franchiseId, String branchId, String productId) {
-        return Mono.error(new UnsupportedOperationException("Implemented in T5"));
+        DeleteItemRequest request = DeleteItemRequest.builder()
+                .tableName(table)
+                .key(productKey(franchiseId, branchId, productId))
+                .conditionExpression(EXISTS)
+                .build();
+        return Mono.fromFuture(() -> client.deleteItem(request))
+                .onErrorMap(ConditionalCheckFailedException.class,
+                        e -> productNotFound(franchiseId, branchId, productId))
+                .then();
     }
 
     @Override
     public Mono<Product> updateStock(String franchiseId, String branchId, String productId, int stock) {
-        return Mono.error(new UnsupportedOperationException("Implemented in T5"));
+        UpdateItemRequest request = UpdateItemRequest.builder()
+                .tableName(table)
+                .key(productKey(franchiseId, branchId, productId))
+                .updateExpression("SET stock = :stock")
+                .conditionExpression(EXISTS)
+                .expressionAttributeValues(Map.of(":stock", AttributeValue.builder().n(String.valueOf(stock)).build()))
+                .returnValues(ReturnValue.ALL_NEW)
+                .build();
+        return Mono.fromFuture(() -> client.updateItem(request))
+                .map(response -> new Product(
+                        productId,
+                        response.attributes().get("name").s(),
+                        Integer.parseInt(response.attributes().get("stock").n())))
+                .onErrorMap(ConditionalCheckFailedException.class,
+                        e -> productNotFound(franchiseId, branchId, productId));
     }
 
     @Override
@@ -111,6 +137,17 @@ public class DynamoFranchiseRepository implements FranchiseRepository {
         return Mono.fromFuture(() -> client.transactWriteItems(request))
                 .onErrorMap(TransactionCanceledException.class, e -> new NotFoundException(notFoundMessage))
                 .then();
+    }
+
+    private static Map<String, AttributeValue> productKey(String franchiseId, String branchId, String productId) {
+        return Map.of(
+                "PK", s(franchisePk(franchiseId)),
+                "SK", s("BRANCH#" + branchId + "#PRODUCT#" + productId));
+    }
+
+    private static NotFoundException productNotFound(String franchiseId, String branchId, String productId) {
+        return new NotFoundException("Product " + productId + " not found in branch " + branchId
+                + " of franchise " + franchiseId);
     }
 
     private static String franchisePk(String franchiseId) {
