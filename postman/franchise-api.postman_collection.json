@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Franchise API",
+    "name": "Franchise API - ordered tests",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -27,25 +27,7 @@
   ],
   "item": [
     {
-      "name": "00 List all franchises (find ids)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/franchises",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "franchises"
-          ]
-        }
-      }
-    },
-    {
-      "name": "01 Create franchise",
+      "name": "A1 Create franchise",
       "request": {
         "method": "POST",
         "header": [
@@ -76,15 +58,15 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const j = pm.response.json();",
-              "pm.collectionVariables.set('franchiseId', j.id);"
+              "pm.test('status 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('franchiseId', pm.response.json().id);"
             ]
           }
         }
       ]
     },
     {
-      "name": "02 Create branch (Centro)",
+      "name": "A2 Create branch Centro",
       "request": {
         "method": "POST",
         "header": [
@@ -117,15 +99,98 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const j = pm.response.json();",
-              "pm.collectionVariables.set('branchId', j.id);"
+              "pm.test('status 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('branchId', pm.response.json().id);"
             ]
           }
         }
       ]
     },
     {
-      "name": "03 Create product (Fries, 60)",
+      "name": "A3 Create branch Norte",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Norte\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('branchId2', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "A4 Product Whopper (25) in Centro",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId}}",
+            "products"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Whopper\",\n  \"stock\": 25\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "A5 Product Fries (60) in Centro",
       "request": {
         "method": "POST",
         "header": [
@@ -160,15 +225,15 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const j = pm.response.json();",
-              "pm.collectionVariables.set('productId', j.id);"
+              "pm.test('status 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('productId', pm.response.json().id);"
             ]
           }
         }
       ]
     },
     {
-      "name": "04 Create branch 2 (Norte)",
+      "name": "A6 Product Zeta (60) in Centro - tie",
       "request": {
         "method": "POST",
         "header": [
@@ -178,7 +243,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches",
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/products",
           "host": [
             "{{baseUrl}}"
           ],
@@ -187,12 +252,14 @@
             "v1",
             "franchises",
             "{{franchiseId}}",
-            "branches"
+            "branches",
+            "{{branchId}}",
+            "products"
           ]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Norte\"\n}"
+          "raw": "{\n  \"name\": \"Zeta\",\n  \"stock\": 60\n}"
         }
       },
       "event": [
@@ -201,15 +268,14 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const j = pm.response.json();",
-              "pm.collectionVariables.set('branchId2', j.id);"
+              "pm.test('status 201', () => pm.response.to.have.status(201));"
             ]
           }
         }
       ]
     },
     {
-      "name": "05 Create product in Norte (Soda, 7)",
+      "name": "A7 Product Soda (7) in Norte",
       "request": {
         "method": "POST",
         "header": [
@@ -237,10 +303,61 @@
           "mode": "raw",
           "raw": "{\n  \"name\": \"Soda\",\n  \"stock\": 7\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "06 Top stock per branch",
+      "name": "A8 Create empty branch",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Vacia\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "B9 TOP STOCK per branch",
       "request": {
         "method": "GET",
         "header": [
@@ -262,10 +379,25 @@
             "top-stock-products"
           ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const t = pm.response.json();",
+              "pm.test('2 branches (empty one omitted)', () => pm.expect(t.length).to.eql(2));",
+              "pm.test('Centro -> Fries (tie 60 vs Zeta, smaller name wins)', () => pm.expect(t.find(x=>x.branchName==='Centro').productName).to.eql('Fries'));",
+              "pm.test('Norte -> Soda', () => pm.expect(t.find(x=>x.branchName==='Norte').productName).to.eql('Soda'));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "07 Update stock (Fries -> 5)",
+      "name": "C10 Update stock Fries -> 5",
       "request": {
         "method": "PATCH",
         "header": [
@@ -295,10 +427,60 @@
           "mode": "raw",
           "raw": "{\n  \"stock\": 5\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('stock is 5', () => pm.expect(pm.response.json().stock).to.eql(5));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "08 Rename franchise",
+      "name": "C11 TOP STOCK again (Zeta wins)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/top-stock-products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "top-stock-products"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const t = pm.response.json();",
+              "pm.test('Centro -> Zeta (60) after Fries drops to 5', () => pm.expect(t.find(x=>x.branchName.startsWith('Centro')).productName).to.eql('Zeta'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "C12 Rename franchise",
       "request": {
         "method": "PATCH",
         "header": [
@@ -322,12 +504,23 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Burger Co Renamed\"\n}"
+          "raw": "{\n  \"name\": \"Burger Co 2\"\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "09 Rename branch",
+      "name": "C13 Rename branch Centro",
       "request": {
         "method": "PATCH",
         "header": [
@@ -353,12 +546,23 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Centro Renamed\"\n}"
+          "raw": "{\n  \"name\": \"Centro 2\"\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "10 Rename product",
+      "name": "C14 Rename product Fries -> Papas",
       "request": {
         "method": "PATCH",
         "header": [
@@ -386,12 +590,62 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Fries Renamed\"\n}"
+          "raw": "{\n  \"name\": \"Papas\"\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('stock kept (5)', () => pm.expect(pm.response.json().stock).to.eql(5));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "11 Delete product",
+      "name": "C15 List all franchises (ids + tree)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const all = pm.response.json();",
+              "const f = all.find(x => x.id === pm.collectionVariables.get('franchiseId'));",
+              "pm.test('franchise renamed', () => pm.expect(f.name).to.eql('Burger Co 2'));",
+              "pm.test('branch renamed', () => pm.expect(f.branches.some(b=>b.name==='Centro 2')).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "D16 Delete product Papas",
       "request": {
         "method": "DELETE",
         "header": [
@@ -416,10 +670,21 @@
             "{{productId}}"
           ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 204', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "12 Top stock after delete",
+      "name": "D17 TOP STOCK after delete",
       "request": {
         "method": "GET",
         "header": [
@@ -441,10 +706,23 @@
             "top-stock-products"
           ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const t = pm.response.json();",
+              "pm.test('deleted product no longer listed', () => pm.expect(t.some(x=>x.productName==='Papas')).to.eql(false));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "E1 Blank name -> 400",
+      "name": "E18 Blank name -> 400",
       "request": {
         "method": "POST",
         "header": [
@@ -468,12 +746,23 @@
           "mode": "raw",
           "raw": "{\n  \"name\": \"\"\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "E2 Negative stock -> 400",
+      "name": "E19 Negative stock -> 400",
       "request": {
-        "method": "PATCH",
+        "method": "POST",
         "header": [
           {
             "key": "Content-Type",
@@ -481,7 +770,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId2}}/products/x/stock",
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/products",
           "host": [
             "{{baseUrl}}"
           ],
@@ -491,22 +780,31 @@
             "franchises",
             "{{franchiseId}}",
             "branches",
-            "{{branchId2}}",
-            "products",
-            "x",
-            "stock"
+            "{{branchId}}",
+            "products"
           ]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"stock\": -1\n}"
+          "raw": "{\n  \"name\": \"X\",\n  \"stock\": -1\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "E3 Unknown franchise -> 404",
+      "name": "E20 Unknown franchise -> 404",
       "request": {
-        "method": "GET",
+        "method": "POST",
         "header": [
           {
             "key": "Content-Type",
@@ -514,7 +812,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/v1/franchises/does-not-exist/top-stock-products",
+          "raw": "{{baseUrl}}/api/v1/franchises/nope/branches",
           "host": [
             "{{baseUrl}}"
           ],
@@ -522,14 +820,29 @@
             "api",
             "v1",
             "franchises",
-            "does-not-exist",
-            "top-stock-products"
+            "nope",
+            "branches"
           ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"X\"\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "E4 Delete again -> 404",
+      "name": "E21 Delete same product again -> 404",
       "request": {
         "method": "DELETE",
         "header": [
@@ -554,7 +867,54 @@
             "{{productId}}"
           ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "E22 Top stock of unknown franchise -> 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/nope/top-stock-products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "nope",
+            "top-stock-products"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
     }
   ]
 }
