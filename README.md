@@ -158,7 +158,7 @@ La API está desplegada como **imagen de contenedor en AWS Lambda** con una Func
 **URL pública:** <https://6lgdtmkag3yjftcutdcwop4keq0mknuu.lambda-url.us-east-1.on.aws/>
 
 - Health: `/actuator/health` · Swagger UI: `/swagger-ui.html` · API: `/api/v1/franchises`
-- **Arranque en frío:** tras un periodo sin tráfico, la primera petición tarda unos 10 s (arranca la JVM); las siguientes responden en ~0,3 s.
+- **Arranque en frío:** una regla de EventBridge (`rate(5 minutes)`) mantiene la función caliente; aun así, si AWS recicla la instancia, la primera petición puede tardar unos 10 s (arranca la JVM). Los ping llegan a la app como `POST /actuator/health` gracias a `AWS_LWA_PASS_THROUGH_PATH` y no tienen costo apreciable (capa gratuita).
 - **Por qué Lambda y no ECS:** es serverless y se factura por uso, así que puede quedar siempre disponible sin costo por estar encendida. El [Lambda Web Adapter](https://github.com/awslabs/aws-lambda-web-adapter) traduce los eventos de Lambda a HTTP, por lo que el código de la aplicación no cambia.
 - **Seguridad:** la función usa un rol IAM de mínimo privilegio (solo las acciones de datos que usa la API, solo sobre la tabla `franchises`); no hay credenciales en el código ni en la imagen. La URL es pública y sin autenticación, como pide la prueba.
 
