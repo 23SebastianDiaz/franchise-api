@@ -75,6 +75,7 @@ Base: `/api/v1/franchises`. Todos los identificadores son UUID generados por el 
 | Método | Ruta | Body | Respuestas |
 | --- | --- | --- | --- |
 | POST | `/` | `{"name"}` | 201, 400 |
+| GET | `/{franchiseId}` | — | 200, 404 (extra: franquicia completa con sucursales y productos) |
 | POST | `/{franchiseId}/branches` | `{"name"}` | 201, 400, 404 |
 | POST | `/{franchiseId}/branches/{branchId}/products` | `{"name","stock"}` | 201, 400, 404 |
 | DELETE | `/{franchiseId}/branches/{branchId}/products/{productId}` | — | 204, 404 |
@@ -98,6 +99,9 @@ curl -s -X POST $U/<franchiseId>/branches/<branchId>/products -H "$H" -d '{"name
 
 # Modificar stock
 curl -s -X PATCH $U/<franchiseId>/branches/<branchId>/products/<productId>/stock -H "$H" -d '{"stock":15}'
+
+# Ver la franquicia completa (sucursales y productos)
+curl -s $U/<franchiseId>
 
 # Producto con más stock por sucursal
 curl -s $U/<franchiseId>/top-stock-products

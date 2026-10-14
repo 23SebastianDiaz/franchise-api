@@ -15,12 +15,14 @@ import com.juan.franchise.application.usecase.CreateBranchUseCase;
 import com.juan.franchise.application.usecase.CreateFranchiseUseCase;
 import com.juan.franchise.application.usecase.CreateProductUseCase;
 import com.juan.franchise.application.usecase.DeleteProductUseCase;
+import com.juan.franchise.application.usecase.GetFranchiseUseCase;
 import com.juan.franchise.application.usecase.GetTopStockProductsUseCase;
 import com.juan.franchise.application.usecase.RenameBranchUseCase;
 import com.juan.franchise.application.usecase.RenameFranchiseUseCase;
 import com.juan.franchise.application.usecase.RenameProductUseCase;
 import com.juan.franchise.application.usecase.UpdateStockUseCase;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.CreateProductRequest;
+import com.juan.franchise.infrastructure.entrypoint.rest.dto.FranchiseDetailResponse;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.IdNameResponse;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.NameRequest;
 import com.juan.franchise.infrastructure.entrypoint.rest.dto.ProductResponse;
@@ -46,6 +48,7 @@ public class FranchiseController {
     private final RenameFranchiseUseCase renameFranchise;
     private final RenameBranchUseCase renameBranch;
     private final RenameProductUseCase renameProduct;
+    private final GetFranchiseUseCase getFranchise;
 
     public FranchiseController(CreateFranchiseUseCase createFranchise,
                                CreateBranchUseCase createBranch,
@@ -55,7 +58,8 @@ public class FranchiseController {
                                GetTopStockProductsUseCase getTopStockProducts,
                                RenameFranchiseUseCase renameFranchise,
                                RenameBranchUseCase renameBranch,
-                               RenameProductUseCase renameProduct) {
+                               RenameProductUseCase renameProduct,
+                               GetFranchiseUseCase getFranchise) {
         this.createFranchise = createFranchise;
         this.createBranch = createBranch;
         this.createProduct = createProduct;
@@ -65,6 +69,12 @@ public class FranchiseController {
         this.renameFranchise = renameFranchise;
         this.renameBranch = renameBranch;
         this.renameProduct = renameProduct;
+        this.getFranchise = getFranchise;
+    }
+
+    @GetMapping("/{franchiseId}")
+    public Mono<FranchiseDetailResponse> getFranchise(@PathVariable String franchiseId) {
+        return getFranchise.execute(franchiseId).map(FranchiseDetailResponse::from);
     }
 
     @PostMapping
