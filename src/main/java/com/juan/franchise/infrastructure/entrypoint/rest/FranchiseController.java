@@ -15,7 +15,6 @@ import com.juan.franchise.application.usecase.CreateBranchUseCase;
 import com.juan.franchise.application.usecase.CreateFranchiseUseCase;
 import com.juan.franchise.application.usecase.CreateProductUseCase;
 import com.juan.franchise.application.usecase.DeleteProductUseCase;
-import com.juan.franchise.application.usecase.GetFranchiseUseCase;
 import com.juan.franchise.application.usecase.GetTopStockProductsUseCase;
 import com.juan.franchise.application.usecase.ListFranchisesUseCase;
 import com.juan.franchise.application.usecase.RenameBranchUseCase;
@@ -49,7 +48,6 @@ public class FranchiseController {
     private final RenameFranchiseUseCase renameFranchise;
     private final RenameBranchUseCase renameBranch;
     private final RenameProductUseCase renameProduct;
-    private final GetFranchiseUseCase getFranchise;
     private final ListFranchisesUseCase listFranchises;
 
     public FranchiseController(CreateFranchiseUseCase createFranchise,
@@ -61,7 +59,6 @@ public class FranchiseController {
                                RenameFranchiseUseCase renameFranchise,
                                RenameBranchUseCase renameBranch,
                                RenameProductUseCase renameProduct,
-                               GetFranchiseUseCase getFranchise,
                                ListFranchisesUseCase listFranchises) {
         this.createFranchise = createFranchise;
         this.createBranch = createBranch;
@@ -72,18 +69,12 @@ public class FranchiseController {
         this.renameFranchise = renameFranchise;
         this.renameBranch = renameBranch;
         this.renameProduct = renameProduct;
-        this.getFranchise = getFranchise;
         this.listFranchises = listFranchises;
     }
 
     @GetMapping
     public Flux<FranchiseDetailResponse> listFranchises() {
         return listFranchises.execute().map(FranchiseDetailResponse::from);
-    }
-
-    @GetMapping("/{franchiseId}")
-    public Mono<FranchiseDetailResponse> getFranchise(@PathVariable String franchiseId) {
-        return getFranchise.execute(franchiseId).map(FranchiseDetailResponse::from);
     }
 
     @PostMapping

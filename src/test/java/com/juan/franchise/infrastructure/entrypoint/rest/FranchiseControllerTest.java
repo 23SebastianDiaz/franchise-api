@@ -16,7 +16,6 @@ import com.juan.franchise.application.usecase.CreateBranchUseCase;
 import com.juan.franchise.application.usecase.CreateFranchiseUseCase;
 import com.juan.franchise.application.usecase.CreateProductUseCase;
 import com.juan.franchise.application.usecase.DeleteProductUseCase;
-import com.juan.franchise.application.usecase.GetFranchiseUseCase;
 import com.juan.franchise.application.usecase.GetTopStockProductsUseCase;
 import com.juan.franchise.application.usecase.ListFranchisesUseCase;
 import com.juan.franchise.application.usecase.RenameBranchUseCase;
@@ -46,7 +45,6 @@ class FranchiseControllerTest {
     @MockitoBean RenameFranchiseUseCase renameFranchise;
     @MockitoBean RenameBranchUseCase renameBranch;
     @MockitoBean RenameProductUseCase renameProduct;
-    @MockitoBean GetFranchiseUseCase getFranchise;
     @MockitoBean ListFranchisesUseCase listFranchises;
 
     @Test
@@ -73,32 +71,6 @@ class FranchiseControllerTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody().json("[]");
-    }
-
-    @Test
-    void getFranchiseReturnsTreeSortedByName() {
-        when(getFranchise.execute("f1")).thenReturn(Mono.just(new Franchise("f1", "Burger Co", List.of(
-                new Branch("b2", "Norte", List.of(new Product("p3", "Soda", 7))),
-                new Branch("b1", "Centro", List.of(new Product("p2", "Fries", 60), new Product("p1", "Apple", 2)))))));
-
-        client.get().uri("/api/v1/franchises/f1")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.name").isEqualTo("Burger Co")
-                .jsonPath("$.branches[0].name").isEqualTo("Centro")
-                .jsonPath("$.branches[0].products[0].name").isEqualTo("Apple")
-                .jsonPath("$.branches[0].products[1].stock").isEqualTo(60)
-                .jsonPath("$.branches[1].name").isEqualTo("Norte");
-    }
-
-    @Test
-    void getMissingFranchiseReturns404() {
-        when(getFranchise.execute("nope")).thenReturn(Mono.error(new NotFoundException("Franchise nope not found")));
-
-        client.get().uri("/api/v1/franchises/nope")
-                .exchange()
-                .expectStatus().isNotFound();
     }
 
     @Test

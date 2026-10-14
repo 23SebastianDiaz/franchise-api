@@ -265,25 +265,6 @@
       }
     },
     {
-      "name": "05b Get full franchise (tree)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "franchises",
-            "{{franchiseId}}"
-          ]
-        }
-      }
-    },
-    {
       "name": "07 Update stock (Fries -> 5)",
       "request": {
         "method": "PATCH",
@@ -571,25 +552,6 @@
             "{{branchId}}",
             "products",
             "{{productId}}"
-          ]
-        }
-      }
-    },
-    {
-      "name": "E5 Get unknown franchise -> 404",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/franchises/does-not-exist",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "franchises",
-            "does-not-exist"
           ]
         }
       }
