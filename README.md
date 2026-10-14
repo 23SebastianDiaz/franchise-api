@@ -75,7 +75,8 @@ Base: `/api/v1/franchises`. Todos los identificadores son UUID generados por el 
 | Método | Ruta | Body | Respuestas |
 | --- | --- | --- | --- |
 | POST | `/` | `{"name"}` | 201, 400 |
-| GET | `/{franchiseId}` | — | 200, 404 (extra: franquicia completa con sucursales y productos) |
+| GET | `/` | — | 200 (extra: todas las franquicias con sus sucursales y productos) |
+| GET | `/{franchiseId}` | — | 200, 404 (extra: una franquicia completa con sucursales y productos) |
 | POST | `/{franchiseId}/branches` | `{"name"}` | 201, 400, 404 |
 | POST | `/{franchiseId}/branches/{branchId}/products` | `{"name","stock"}` | 201, 400, 404 |
 | DELETE | `/{franchiseId}/branches/{branchId}/products/{productId}` | — | 204, 404 |
@@ -100,7 +101,10 @@ curl -s -X POST $U/<franchiseId>/branches/<branchId>/products -H "$H" -d '{"name
 # Modificar stock
 curl -s -X PATCH $U/<franchiseId>/branches/<branchId>/products/<productId>/stock -H "$H" -d '{"stock":15}'
 
-# Ver la franquicia completa (sucursales y productos)
+# Listar todas las franquicias con sucursales y productos (para obtener los ids)
+curl -s $U
+
+# Ver una franquicia completa (sucursales y productos)
 curl -s $U/<franchiseId>
 
 # Producto con más stock por sucursal
@@ -134,6 +138,7 @@ curl -s -X DELETE $U/<franchiseId>/branches/<branchId>/products/<productId>
   - El top de stock usa **una sola `Query`** por partición (con paginación), sin `Scan`.
   - Crear sucursal/producto usa `TransactWriteItems`: verifica atómicamente que el padre exista antes de insertar.
   - Actualizar y eliminar usan `ConditionExpression attribute_exists(PK)`, así que no se crean ítems fantasma.
+- **Listado de franquicias:** `GET /api/v1/franchises` usa un `Scan` paginado de la tabla (es un endpoint de consulta pensado para el volumen de una demo; con muchos datos convendría un índice secundario y paginación hacia el cliente). El resto de operaciones usan acceso por clave, y el top de stock una sola `Query`.
 - **Configuración** por variables de entorno; no hay secretos en el repositorio.
 
 ## Despliegue en AWS

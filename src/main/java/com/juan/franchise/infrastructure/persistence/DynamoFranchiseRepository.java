@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -27,6 +28,8 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
@@ -136,6 +139,20 @@ public class DynamoFranchiseRepository implements FranchiseRepository {
                 productNotFound(franchiseId, branchId, productId).getMessage())
                 .map(attrs -> new Product(productId, attrs.get("name").s(),
                         Integer.parseInt(attrs.get("stock").n())));
+    }
+
+    @Override
+    public Flux<Franchise> findAllFranchises() {
+        ScanRequest request = ScanRequest.builder().tableName(table).build();
+        // A Scan reads the whole table: fine for a small listing, not for large datasets.
+        return Flux.from(client.scanPaginator(request))
+                .flatMapIterable(ScanResponse::items)
+                .collectList()
+                .flatMapMany(items -> Flux.fromStream(items.stream()
+                        .collect(Collectors.groupingBy(i -> i.get("PK").s().substring("FRANCHISE#".length())))
+                        .entrySet().stream()
+                        .map(e -> toFranchise(e.getKey(), e.getValue()))
+                        .flatMap(Optional::stream)));
     }
 
     @Override

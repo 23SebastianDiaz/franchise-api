@@ -18,6 +18,7 @@ import com.juan.franchise.application.usecase.CreateProductUseCase;
 import com.juan.franchise.application.usecase.DeleteProductUseCase;
 import com.juan.franchise.application.usecase.GetFranchiseUseCase;
 import com.juan.franchise.application.usecase.GetTopStockProductsUseCase;
+import com.juan.franchise.application.usecase.ListFranchisesUseCase;
 import com.juan.franchise.application.usecase.RenameBranchUseCase;
 import com.juan.franchise.application.usecase.RenameFranchiseUseCase;
 import com.juan.franchise.application.usecase.RenameProductUseCase;
@@ -46,6 +47,33 @@ class FranchiseControllerTest {
     @MockitoBean RenameBranchUseCase renameBranch;
     @MockitoBean RenameProductUseCase renameProduct;
     @MockitoBean GetFranchiseUseCase getFranchise;
+    @MockitoBean ListFranchisesUseCase listFranchises;
+
+    @Test
+    void listFranchisesReturnsAllWithTheirTree() {
+        when(listFranchises.execute()).thenReturn(Flux.just(
+                new Franchise("f1", "Alpha", List.of(new Branch("b1", "Centro", List.of(new Product("p1", "Fries", 60))))),
+                new Franchise("f2", "Beta", List.of())));
+
+        client.get().uri("/api/v1/franchises")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(2)
+                .jsonPath("$[0].name").isEqualTo("Alpha")
+                .jsonPath("$[0].branches[0].products[0].name").isEqualTo("Fries")
+                .jsonPath("$[1].branches.length()").isEqualTo(0);
+    }
+
+    @Test
+    void listFranchisesReturnsEmptyArrayWhenThereAreNone() {
+        when(listFranchises.execute()).thenReturn(Flux.empty());
+
+        client.get().uri("/api/v1/franchises")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().json("[]");
+    }
 
     @Test
     void getFranchiseReturnsTreeSortedByName() {

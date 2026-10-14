@@ -17,6 +17,7 @@ import com.juan.franchise.application.usecase.CreateProductUseCase;
 import com.juan.franchise.application.usecase.DeleteProductUseCase;
 import com.juan.franchise.application.usecase.GetFranchiseUseCase;
 import com.juan.franchise.application.usecase.GetTopStockProductsUseCase;
+import com.juan.franchise.application.usecase.ListFranchisesUseCase;
 import com.juan.franchise.application.usecase.RenameBranchUseCase;
 import com.juan.franchise.application.usecase.RenameFranchiseUseCase;
 import com.juan.franchise.application.usecase.RenameProductUseCase;
@@ -49,6 +50,7 @@ public class FranchiseController {
     private final RenameBranchUseCase renameBranch;
     private final RenameProductUseCase renameProduct;
     private final GetFranchiseUseCase getFranchise;
+    private final ListFranchisesUseCase listFranchises;
 
     public FranchiseController(CreateFranchiseUseCase createFranchise,
                                CreateBranchUseCase createBranch,
@@ -59,7 +61,8 @@ public class FranchiseController {
                                RenameFranchiseUseCase renameFranchise,
                                RenameBranchUseCase renameBranch,
                                RenameProductUseCase renameProduct,
-                               GetFranchiseUseCase getFranchise) {
+                               GetFranchiseUseCase getFranchise,
+                               ListFranchisesUseCase listFranchises) {
         this.createFranchise = createFranchise;
         this.createBranch = createBranch;
         this.createProduct = createProduct;
@@ -70,6 +73,12 @@ public class FranchiseController {
         this.renameBranch = renameBranch;
         this.renameProduct = renameProduct;
         this.getFranchise = getFranchise;
+        this.listFranchises = listFranchises;
+    }
+
+    @GetMapping
+    public Flux<FranchiseDetailResponse> listFranchises() {
+        return listFranchises.execute().map(FranchiseDetailResponse::from);
     }
 
     @GetMapping("/{franchiseId}")

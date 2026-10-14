@@ -3,6 +3,7 @@ package com.juan.franchise.domain.port;
 import com.juan.franchise.domain.model.Branch;
 import com.juan.franchise.domain.model.Franchise;
 import com.juan.franchise.domain.model.Product;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -26,6 +27,9 @@ public interface FranchiseRepository {
     Mono<Branch> renameBranch(String franchiseId, String branchId, String name);
 
     Mono<Product> renameProduct(String franchiseId, String branchId, String productId, String name);
+
+    /** Every franchise with its branches and products (convenience listing; reads the whole table). */
+    Flux<Franchise> findAllFranchises();
 
     /** Franchise with its branches and products; empty if the franchise does not exist. */
     Mono<Franchise> findFranchiseTree(String franchiseId);

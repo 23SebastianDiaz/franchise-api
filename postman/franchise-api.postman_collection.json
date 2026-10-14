@@ -27,6 +27,24 @@
   ],
   "item": [
     {
+      "name": "00 List all franchises (find ids)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises"
+          ]
+        }
+      }
+    },
+    {
       "name": "01 Create franchise",
       "request": {
         "method": "POST",
