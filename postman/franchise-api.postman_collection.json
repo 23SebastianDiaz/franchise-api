@@ -1,0 +1,542 @@
+{
+  "info": {
+    "name": "Franchise API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://6lgdtmkag3yjftcutdcwop4keq0mknuu.lambda-url.us-east-1.on.aws"
+    },
+    {
+      "key": "franchiseId",
+      "value": ""
+    },
+    {
+      "key": "branchId",
+      "value": ""
+    },
+    {
+      "key": "branchId2",
+      "value": ""
+    },
+    {
+      "key": "productId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Create franchise",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Burger Co\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.collectionVariables.set('franchiseId', j.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Create branch (Centro)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Centro\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.collectionVariables.set('branchId', j.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Create product (Fries, 60)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId}}",
+            "products"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Fries\",\n  \"stock\": 60\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.collectionVariables.set('productId', j.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Create branch 2 (Norte)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Norte\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.collectionVariables.set('branchId2', j.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Create product in Norte (Soda, 7)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId2}}/products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId2}}",
+            "products"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Soda\",\n  \"stock\": 7\n}"
+        }
+      }
+    },
+    {
+      "name": "06 Top stock per branch",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/top-stock-products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "top-stock-products"
+          ]
+        }
+      }
+    },
+    {
+      "name": "07 Update stock (Fries -> 5)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/products/{{productId}}/stock",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId}}",
+            "products",
+            "{{productId}}",
+            "stock"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stock\": 5\n}"
+        }
+      }
+    },
+    {
+      "name": "08 Rename franchise",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/name",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "name"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Burger Co Renamed\"\n}"
+        }
+      }
+    },
+    {
+      "name": "09 Rename branch",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/name",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId}}",
+            "name"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Centro Renamed\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10 Rename product",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/products/{{productId}}/name",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId}}",
+            "products",
+            "{{productId}}",
+            "name"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Fries Renamed\"\n}"
+        }
+      }
+    },
+    {
+      "name": "11 Delete product",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/products/{{productId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId}}",
+            "products",
+            "{{productId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "12 Top stock after delete",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/top-stock-products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "top-stock-products"
+          ]
+        }
+      }
+    },
+    {
+      "name": "E1 Blank name -> 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"\"\n}"
+        }
+      }
+    },
+    {
+      "name": "E2 Negative stock -> 400",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId2}}/products/x/stock",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId2}}",
+            "products",
+            "x",
+            "stock"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stock\": -1\n}"
+        }
+      }
+    },
+    {
+      "name": "E3 Unknown franchise -> 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/does-not-exist/top-stock-products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "does-not-exist",
+            "top-stock-products"
+          ]
+        }
+      }
+    },
+    {
+      "name": "E4 Delete again -> 404",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/franchises/{{franchiseId}}/branches/{{branchId}}/products/{{productId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "franchises",
+            "{{franchiseId}}",
+            "branches",
+            "{{branchId}}",
+            "products",
+            "{{productId}}"
+          ]
+        }
+      }
+    }
+  ]
+}

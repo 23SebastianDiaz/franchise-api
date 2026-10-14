@@ -6,6 +6,13 @@ API REST reactiva para administrar **franquicias**, sus **sucursales** y los **p
 - **Persistencia:** DynamoDB en AWS, aprovisionada con CloudFormation. En local se usa DynamoDB Local (Docker).
 - **Arquitectura:** hexagonal ligera (dominio aislado de Spring y de AWS).
 
+## Prueba rápida (API desplegada en AWS)
+
+- **URL base:** <https://6lgdtmkag3yjftcutdcwop4keq0mknuu.lambda-url.us-east-1.on.aws>
+- **Swagger UI** (probar los endpoints desde el navegador): <https://6lgdtmkag3yjftcutdcwop4keq0mknuu.lambda-url.us-east-1.on.aws/swagger-ui.html>
+- **Postman:** importar [`postman/franchise-api.postman_collection.json`](postman/franchise-api.postman_collection.json) y ejecutar las peticiones en orden; los identificadores se guardan solos.
+- La primera petición tras un periodo sin uso tarda unos 10 s (arranque en frío de Lambda); las siguientes responden en ~0,3 s.
+
 ## Requisitos
 
 | Herramienta | Para qué | Versión |
