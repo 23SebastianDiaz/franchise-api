@@ -10,25 +10,35 @@ API REST reactiva para administrar **franquicias**, sus **sucursales** y los **p
 
 | Herramienta | Para qué | Versión |
 | --- | --- | --- |
-| JDK | compilar y ejecutar | 21 |
-| Docker + Docker Compose | DynamoDB Local | cualquiera reciente |
-| AWS CLI | crear la tabla local (y desplegar a AWS) | v2 |
+| Docker + Docker Compose | levantar todo (Opción A) o solo DynamoDB Local (Opción B) | cualquiera reciente |
+| JDK | solo en la Opción B y para correr los tests | 21 |
+| AWS CLI | solo en la Opción B (script de tabla) y para desplegar a AWS | v2 |
 
 Maven no se instala: el proyecto incluye el wrapper `./mvnw`.
 
 ## Ejecución en local
 
-```bash
-# 1. Levantar DynamoDB Local (puerto 8000)
-docker compose up -d
+### Opción A: todo con Docker (recomendada)
 
-# 2. Crear la tabla "franchises"
+Solo necesitas Docker. Un comando construye la imagen, levanta DynamoDB Local, crea la tabla y arranca la API:
+
+```bash
+APP_PORT=8081 docker compose up -d --build
+```
+
+`APP_PORT` es el puerto del host (por defecto 8080; cámbialo si está ocupado). Para detener todo: `docker compose down`.
+
+### Opción B: API con Java y DynamoDB Local en Docker
+
+```bash
+# 1. Levantar solo DynamoDB Local (puerto 8000) y crear la tabla
+docker compose up -d dynamodb-local
 ./scripts/create-table.sh
 
-# 3. Configurar la app para usar DynamoDB Local
+# 2. Configurar la app para usar DynamoDB Local
 set -a; source .env.example; set +a
 
-# 4. Arrancar la API
+# 3. Arrancar la API
 ./mvnw spring-boot:run
 ```
 
