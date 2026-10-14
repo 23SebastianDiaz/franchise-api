@@ -59,6 +59,28 @@ Resources:
       Environment:
         Variables:
           DYNAMODB_TABLE: !Ref TableName
+          # Non-HTTP events (the keep-warm schedule) are forwarded to the app as a POST on this path
+          AWS_LWA_PASS_THROUGH_PATH: /actuator/health
+
+  # Pings the function every 5 minutes so the JVM stays loaded and users avoid cold starts.
+  KeepWarmRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Keeps the Franchise API Lambda warm
+      ScheduleExpression: rate(5 minutes)
+      State: ENABLED
+      Targets:
+        - Id: keep-warm
+          Arn: !GetAtt Function.Arn
+          Input: '{"source":"keep-warm"}'
+
+  KeepWarmPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Function
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt KeepWarmRule.Arn
 
   FunctionUrl:
     Type: AWS::Lambda::Url
