@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ECR repository for the Franchise API container image
+
+Parameters:
+  RepositoryName:
+    Type: String
+    Default: franchise-api
+
+Resources:
+  Repository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep the last 3 images",
+           "selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":3},
+           "action":{"type":"expire"}}]}
+
+Outputs:
+  RepositoryUri:
+    Description: Repository URI used to tag and push the image
+    Value: !GetAtt Repository.RepositoryUri

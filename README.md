@@ -144,6 +144,39 @@ AWS_PROFILE=<tu-perfil> AWS_REGION=us-east-1 SERVER_PORT=8081 ./mvnw spring-boot
 
 Para eliminar los recursos: `aws cloudformation delete-stack --stack-name franchise-dynamodb`.
 
+## Despliegue en la nube (AWS Lambda)
+
+La API está desplegada como **imagen de contenedor en AWS Lambda** con una Function URL pública, y usa la tabla DynamoDB del stack anterior.
+
+**URL pública:** <https://6lgdtmkag3yjftcutdcwop4keq0mknuu.lambda-url.us-east-1.on.aws/>
+
+- Health: `/actuator/health` · Swagger UI: `/swagger-ui.html` · API: `/api/v1/franchises`
+- **Arranque en frío:** tras un periodo sin tráfico, la primera petición tarda unos 10 s (arranca la JVM); las siguientes responden en ~0,3 s.
+- **Por qué Lambda y no ECS:** es serverless y se factura por uso, así que puede quedar siempre disponible sin costo por estar encendida. El [Lambda Web Adapter](https://github.com/awslabs/aws-lambda-web-adapter) traduce los eventos de Lambda a HTTP, por lo que el código de la aplicación no cambia.
+- **Seguridad:** la función usa un rol IAM de mínimo privilegio (solo las acciones de datos que usa la API, solo sobre la tabla `franchises`); no hay credenciales en el código ni en la imagen. La URL es pública y sin autenticación, como pide la prueba.
+
+Para reproducir el despliegue:
+
+```bash
+P="--profile <tu-perfil> --region us-east-1"
+
+# 1. Tabla DynamoDB (si aún no existe) y repositorio de imágenes
+aws cloudformation deploy --template-file infra/cloudformation/dynamodb-table.yml --stack-name franchise-dynamodb $P
+aws cloudformation deploy --template-file infra/cloudformation/ecr.yml --stack-name franchise-ecr $P
+
+# 2. Construir y publicar la imagen (arm64)
+REPO=<account-id>.dkr.ecr.us-east-1.amazonaws.com/franchise-api
+aws ecr get-login-password $P | docker login --username AWS --password-stdin ${REPO%/*}
+docker buildx build --platform linux/arm64 --provenance=false -f Dockerfile.lambda -t $REPO:v1 --push .
+
+# 3. Función Lambda + URL pública
+aws cloudformation deploy --template-file infra/cloudformation/lambda.yml --stack-name franchise-lambda \
+  --capabilities CAPABILITY_IAM --parameter-overrides ImageUri=$REPO:v1 $P
+aws cloudformation describe-stacks --stack-name franchise-lambda $P --query 'Stacks[0].Outputs'
+```
+
+Para eliminar todo: `aws cloudformation delete-stack --stack-name <franchise-lambda | franchise-ecr | franchise-dynamodb>` (vaciar antes el repositorio ECR).
+
 ## Estructura
 
 ```
@@ -154,6 +187,8 @@ src/main/java/com/juan/franchise/
     ├── entrypoint/rest/   # controlador, DTOs, manejo global de errores
     ├── persistence/       # adaptador DynamoDB
     └── config/            # cliente DynamoDB, OpenAPI
-infra/cloudformation/  # IaC
+infra/cloudformation/  # IaC (tabla DynamoDB, ECR, Lambda)
+Dockerfile             # imagen para ejecución local / docker-compose
+Dockerfile.lambda      # imagen para AWS Lambda (incluye Lambda Web Adapter)
 scripts/               # creación de tabla local
 ```
