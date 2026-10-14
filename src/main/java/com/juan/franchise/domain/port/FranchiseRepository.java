@@ -21,6 +21,12 @@ public interface FranchiseRepository {
 
     Mono<Product> updateStock(String franchiseId, String branchId, String productId, int stock);
 
+    Mono<Franchise> renameFranchise(String franchiseId, String name);
+
+    Mono<Branch> renameBranch(String franchiseId, String branchId, String name);
+
+    Mono<Product> renameProduct(String franchiseId, String branchId, String productId, String name);
+
     /** Franchise with its branches and products; empty if the franchise does not exist. */
     Mono<Franchise> findFranchiseTree(String franchiseId);
 }

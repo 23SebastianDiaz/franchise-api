@@ -117,6 +117,28 @@ public class DynamoFranchiseRepository implements FranchiseRepository {
     }
 
     @Override
+    public Mono<Franchise> renameFranchise(String franchiseId, String name) {
+        return rename(Map.of("PK", s(franchisePk(franchiseId)), "SK", s("METADATA")), name,
+                "Franchise " + franchiseId + " not found")
+                .map(attrs -> new Franchise(franchiseId, attrs.get("name").s(), List.of()));
+    }
+
+    @Override
+    public Mono<Branch> renameBranch(String franchiseId, String branchId, String name) {
+        return rename(Map.of("PK", s(franchisePk(franchiseId)), "SK", s("BRANCH#" + branchId)), name,
+                "Branch " + branchId + " not found in franchise " + franchiseId)
+                .map(attrs -> new Branch(branchId, attrs.get("name").s(), List.of()));
+    }
+
+    @Override
+    public Mono<Product> renameProduct(String franchiseId, String branchId, String productId, String name) {
+        return rename(productKey(franchiseId, branchId, productId), name,
+                productNotFound(franchiseId, branchId, productId).getMessage())
+                .map(attrs -> new Product(productId, attrs.get("name").s(),
+                        Integer.parseInt(attrs.get("stock").n())));
+    }
+
+    @Override
     public Mono<Franchise> findFranchiseTree(String franchiseId) {
         QueryRequest request = QueryRequest.builder()
                 .tableName(table)
@@ -185,6 +207,23 @@ public class DynamoFranchiseRepository implements FranchiseRepository {
         return Mono.fromFuture(() -> client.transactWriteItems(request))
                 .onErrorMap(TransactionCanceledException.class, e -> new NotFoundException(notFoundMessage))
                 .then();
+    }
+
+    /** Updates only the name of an existing item and returns its new attributes. */
+    private Mono<Map<String, AttributeValue>> rename(Map<String, AttributeValue> key, String name,
+                                                     String notFoundMessage) {
+        UpdateItemRequest request = UpdateItemRequest.builder()
+                .tableName(table)
+                .key(key)
+                .updateExpression("SET #n = :name") // "name" is a DynamoDB reserved word
+                .conditionExpression(EXISTS)
+                .expressionAttributeNames(Map.of("#n", "name"))
+                .expressionAttributeValues(Map.of(":name", s(name)))
+                .returnValues(ReturnValue.ALL_NEW)
+                .build();
+        return Mono.fromFuture(() -> client.updateItem(request))
+                .map(response -> response.attributes())
+                .onErrorMap(ConditionalCheckFailedException.class, e -> new NotFoundException(notFoundMessage));
     }
 
     private static Map<String, AttributeValue> productKey(String franchiseId, String branchId, String productId) {

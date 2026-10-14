@@ -17,9 +17,14 @@ import com.juan.franchise.application.usecase.CreateFranchiseUseCase;
 import com.juan.franchise.application.usecase.CreateProductUseCase;
 import com.juan.franchise.application.usecase.DeleteProductUseCase;
 import com.juan.franchise.application.usecase.GetTopStockProductsUseCase;
+import com.juan.franchise.application.usecase.RenameBranchUseCase;
+import com.juan.franchise.application.usecase.RenameFranchiseUseCase;
+import com.juan.franchise.application.usecase.RenameProductUseCase;
 import com.juan.franchise.application.usecase.UpdateStockUseCase;
 import com.juan.franchise.domain.exception.NotFoundException;
+import com.juan.franchise.domain.model.Branch;
 import com.juan.franchise.domain.model.Franchise;
+import com.juan.franchise.domain.model.Product;
 import com.juan.franchise.domain.model.TopStockProduct;
 
 import reactor.core.publisher.Flux;
@@ -36,6 +41,9 @@ class FranchiseControllerTest {
     @MockitoBean DeleteProductUseCase deleteProduct;
     @MockitoBean UpdateStockUseCase updateStock;
     @MockitoBean GetTopStockProductsUseCase getTopStockProducts;
+    @MockitoBean RenameFranchiseUseCase renameFranchise;
+    @MockitoBean RenameBranchUseCase renameBranch;
+    @MockitoBean RenameProductUseCase renameProduct;
 
     @Test
     void createFranchiseReturns201() {
@@ -114,5 +122,59 @@ class FranchiseControllerTest {
                 .jsonPath("$[0].branchName").isEqualTo("Centro")
                 .jsonPath("$[0].productName").isEqualTo("Fries")
                 .jsonPath("$[0].stock").isEqualTo(60);
+    }
+
+    @Test
+    void renameFranchiseReturns200() {
+        when(renameFranchise.execute("f1", "New")).thenReturn(Mono.just(new Franchise("f1", "New", List.of())));
+
+        client.patch().uri("/api/v1/franchises/f1/name").contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"New\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$.name").isEqualTo("New");
+    }
+
+    @Test
+    void renameBranchReturns200() {
+        when(renameBranch.execute("f1", "b1", "North")).thenReturn(Mono.just(new Branch("b1", "North", List.of())));
+
+        client.patch().uri("/api/v1/franchises/f1/branches/b1/name").contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"North\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$.name").isEqualTo("North");
+    }
+
+    @Test
+    void renameProductReturns200() {
+        when(renameProduct.execute("f1", "b1", "p1", "Soda")).thenReturn(Mono.just(new Product("p1", "Soda", 4)));
+
+        client.patch().uri("/api/v1/franchises/f1/branches/b1/products/p1/name")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"Soda\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$.name").isEqualTo("Soda").jsonPath("$.stock").isEqualTo(4);
+    }
+
+    @Test
+    void renameMissingProductReturns404() {
+        when(renameProduct.execute("f1", "b1", "nope", "X"))
+                .thenReturn(Mono.error(new NotFoundException("Product nope not found")));
+
+        client.patch().uri("/api/v1/franchises/f1/branches/b1/products/nope/name")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"X\"}")
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
+    void renameWithBlankNameReturns400() {
+        client.patch().uri("/api/v1/franchises/f1/name").contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"name\":\"\"}")
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 }
